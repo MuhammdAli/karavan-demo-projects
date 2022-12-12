@@ -1,0 +1,35 @@
+apiVersion: camel.apache.org/v1
+kind: Integration
+metadata:
+  name: createOrder
+spec:
+  flows:
+    - rest:
+        post:
+          - to: direct:post
+        path: /trigger
+        consumes: application/json
+        produces: application/json
+    - route:
+        from:
+          uri: direct:post
+          steps:
+            - to:
+                uri: jbpm:http://192.168.12.3:8090/kie-server/services/rest/server
+                parameters:
+                  deploymentId: Initialize Assignment
+                  password: wbadmin
+                  userName: wbadmin
+            - log:
+                message: 'JBPM Response: ${body}'
+            - to:
+                uri: jbpm:http://192.168.12.3:8090/kie-server/services/rest/server
+                parameters:
+                  targetUserId: http://192.168.12.3:8090/kie-server/services/rest/server
+                  password: wbadmin
+                  userName: wbadmin
+                  deploymentId: Product Pricing
+          parameters:
+            synchronous: false
+        logMask: true
+        trace: true
